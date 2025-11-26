@@ -50,6 +50,9 @@ def create_app():
     return app
 
 
+print("ENV VARS DISPONIBLES:", os.environ)
+print("DATABASE_URL =", os.getenv("DATABASE_URL"))
+
 app = create_app()
 
 
