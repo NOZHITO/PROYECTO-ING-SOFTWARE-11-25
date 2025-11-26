@@ -15,7 +15,7 @@ def create_app():
     CORS(app)
 
     # ------------------ Configuración base de datos ------------------
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db?timeout=30"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////data/database.db?timeout=30"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # ------------------ JWT y seguridad ------------------
