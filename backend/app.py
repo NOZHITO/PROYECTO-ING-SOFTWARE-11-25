@@ -8,7 +8,15 @@ from routes.admin_routes import admin_bp
 from routes.proveedor_routes import proveedor_bp
 
 import os
+import psycopg2
+def get_db_connection():
+    database_url = os.getenv("DATABASE_URL")
 
+    if not database_url:
+        raise RuntimeError("DATABASE_URL no está definida")
+
+    conn = psycopg2.connect(database_url)
+    return conn
 def create_app():
     app = Flask(__name__)
     CORS(app)
