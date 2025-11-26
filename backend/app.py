@@ -13,7 +13,12 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL no está definida en las variables de entorno")
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
