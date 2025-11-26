@@ -40,7 +40,7 @@
   "dev": "vite",
   "build": "vite build",
   "preview": "vite preview",
-  "start": "vite preview --host 0.0.0.0 --port $PORT"
+  "start": "node index.js"
 }
 
 }
