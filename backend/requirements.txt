@@ -1,12 +1,9 @@
 Flask
-flask-cors
-Flask-JWT-Extended
-Flask-SQLAlchemy
+Flask-Cors
 Flask-Migrate
+Flask-SQLAlchemy
+Flask-JWT-Extended
 Flask-Bcrypt
 Flask-Mail
-python-dotenv
-gunicorn
 psycopg2-binary
-pip install psycopg2-binary
-
+gunicorn
