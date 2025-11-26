@@ -6,17 +6,9 @@ from routes.auth_routes import auth_bp
 from routes.lote_routes import lote_bp
 from routes.admin_routes import admin_bp
 from routes.proveedor_routes import proveedor_bp
-
 import os
-import psycopg2
-def get_db_connection():
-    database_url = os.getenv("DATABASE_URL")
 
-    if not database_url:
-        raise RuntimeError("DATABASE_URL no está definida")
 
-    conn = psycopg2.connect(database_url)
-    return conn
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -24,11 +16,13 @@ def create_app():
     DATABASE_URL = os.getenv("DATABASE_URL")
 
     if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL no está definida en las variables de entorno")
+        raise RuntimeError("DATABASE_URL no está definida en Railway")
+
+    # Asegurar SSL para Supabase
+    if "sslmode" not in DATABASE_URL:
+        DATABASE_URL += "?sslmode=require"
 
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     app.config["SECRET_KEY"] = "supersecretkey"
@@ -45,7 +39,8 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
-    migrate = Migrate(app, db)
+
+    Migrate(app, db)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
@@ -55,7 +50,6 @@ def create_app():
     return app
 
 
-# 🔥 ESTO ES LO QUE GUNICON USARÁ
 app = create_app()
 
 
