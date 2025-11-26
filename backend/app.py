@@ -55,6 +55,19 @@ print("DATABASE_URL =", os.getenv("DATABASE_URL"))
 
 app = create_app()
 
+def get_db_connection():
+    database_url = os.getenv("DATABASE_URL")
+
+    conn = psycopg2.connect(database_url)
+    return conn
+
+# luego en cada ruta
+conn = get_db_connection()
+cur = conn.cursor()
+
+cur.execute("SELECT * FROM usuarios;")
+
+conn.close()  # SIEMPRE
 
 if __name__ == "__main__":
     with app.app_context():
