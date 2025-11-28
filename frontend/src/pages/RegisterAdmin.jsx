@@ -42,14 +42,14 @@ const RegisterAdmin = () => {
         setTimeout(() => navigate("/login"), 2000);
       }
 
-    } catch (err) {
-      console.error("Error al registrar administrador:", err.response?.data);
+    }  catch (err) {
+        console.log("ERROR COMPLETO:", err);
+        console.log("ERROR RESPONSE:", err.response);
+        console.log("ERROR DATA:", err.response?.data);
 
-      setError(
-        err.response?.data?.msg || 
-        err.response?.data?.error || 
-        "Error al registrar administrador"
-      );
+        setError(JSON.stringify(err.response?.data) || "Error desconocido");
+    }
+
 
     } finally {
       setLoading(false);
