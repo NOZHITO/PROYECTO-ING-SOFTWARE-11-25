@@ -4,7 +4,6 @@ from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
 from flask_migrate import Migrate
-from models import User, Lote, Proveedor
 
 migrate = Migrate()
 
@@ -46,19 +45,18 @@ def create_app():
     bcrypt.init_app(app)
     migrate.init_app(app, db)
 
-    # Importar modelos para que SQLAlchemy los registre
+    # Importar modelos (solo para que se registren con SQLAlchemy)
     from models import User, Lote, Proveedor
 
-    # Crear tablas
-    with app.app_context():
-        try:
-            db.create_all()
-            print("✅ Tablas creadas correctamente en Supabase")
-        except Exception as e:
-            print("❌ Error creando tablas:", e)
+    # NO ejecutes db.create_all() en la inicialización de la app.
+    # Esto se hace una vez usando la línea de comandos (flask db upgrade).
 
     return app
 
 
 # Gunicorn carga esto
+# Esta es la única línea que debe crear el objeto 'app' que Gunicorn busca.
 app = create_app()
+
+# Si quieres hacer que el comando 'flask db upgrade' funcione:
+# from app import app # No necesario si ya está creado
