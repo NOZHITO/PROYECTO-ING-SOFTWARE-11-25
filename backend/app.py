@@ -16,18 +16,17 @@ def create_app():
     if not DATABASE_URL:
         raise RuntimeError("❌ DATABASE_URL no está definida en Railway")
 
-if "sslmode" not in DATABASE_URL:
-    if "?" in DATABASE_URL:
-        DATABASE_URL += "&sslmode=require"
-    else:
-        DATABASE_URL += "?sslmode=require"
-
+    # 💡 Limpia cualquier sslmode anterior
     DATABASE_URL = DATABASE_URL.replace("?sslmode=disable", "").replace("&sslmode=disable", "")
 
+    # Forzar SSL requerido por Supabase
     if "sslmode" not in DATABASE_URL:
-        DATABASE_URL += "?sslmode=require"
+        if "?" in DATABASE_URL:
+            DATABASE_URL += "&sslmode=require"
+        else:
+            DATABASE_URL += "?sslmode=require"
 
-
+    # Config SQLAlchemy
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -66,10 +65,7 @@ if "sslmode" not in DATABASE_URL:
     return app
 
 
-# 🚀 Gunicorn usa esto:
 app = create_app()
 
-
-# Solo para pruebas locales
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0")
