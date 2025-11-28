@@ -46,7 +46,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Importar modelos
-    from models import User, Lote, Proveedor, Vendedor
+    from models import User, Lote, Proveedor
 
     # ✅ RUTA PARA CREAR TABLAS
     @app.route("/init_db")
