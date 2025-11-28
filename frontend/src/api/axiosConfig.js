@@ -1,9 +1,10 @@
 // src/api/axiosConfig.js
 
-// 👉 Cambia esta URL si tu backend escucha en otro puerto
-//export const API_BASE_URL = "http://127.0.0.1:5000";
-axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register_admin`, {
-VITE_API_URL=https://proyecto-ing-software-11-25-production.up.railway.app
+// 1. Usa la variable de entorno VITE_API_URL definida en tu .env o en el entorno de producción
+// Si no existe (ej. en desarrollo sin .env), puedes poner un valor por defecto.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+
+// --- El resto del archivo es el mismo ---
 
 // Obtener token del localStorage
 export const getAuthToken = () => {
