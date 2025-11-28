@@ -4,6 +4,9 @@ from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
 from config import Config
+from flask_migrate import Migrate
+
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
