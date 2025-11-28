@@ -4,6 +4,8 @@ from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
 from flask_migrate import Migrate
+# IMPORTA LOS MODELOS ANTES DE create_all
+from models import User, Lote, Proveedor
 
 migrate = Migrate()
 
@@ -49,20 +51,20 @@ def create_app():
     bcrypt.init_app(app)
     migrate.init_app(app, db)
 
-    # ✅ Probar conexión y crear tablas
-    with app.app_context():
-        try:
-            connection = db.engine.connect()
-            print("✅ Conectado correctamente a Supabase")
-            connection.close()
+with app.app_context():
+    try:
+        from models import User, Lote, Proveedor  # 👈 IMPORTANTE
 
-            db.create_all()
-            print("✅ Tablas creadas correctamente en Supabase")
+        connection = db.engine.connect()
+        print("✅ Conectado correctamente a Supabase")
+        connection.close()
 
-        except Exception as e:
-            print("❌ Error al conectar con Supabase:", e)
+        db.create_all()
+        print("✅ Intentando crear tablas")
 
-    return app
+    except Exception as e:
+        print("❌ Error al conectar con Supabase:", e)
+
 
 
 app = create_app()
