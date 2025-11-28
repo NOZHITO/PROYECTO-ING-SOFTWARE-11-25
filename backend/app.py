@@ -1,5 +1,4 @@
 import os
-import psycopg2
 from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
@@ -16,7 +15,7 @@ def create_app():
     if not DATABASE_URL:
         raise RuntimeError("❌ DATABASE_URL no está definida en Railway")
 
-    # Forzar SSL
+    # Asegurar SSL para Supabase
     if "sslmode" not in DATABASE_URL:
         if "?" in DATABASE_URL:
             DATABASE_URL += "&sslmode=require"
@@ -45,18 +44,12 @@ def create_app():
     bcrypt.init_app(app)
     migrate.init_app(app, db)
 
-    # Importar modelos (solo para que se registren con SQLAlchemy)
+    # 👇 IMPORTANTE: Registra los modelos
     from models import User, Lote, Proveedor
-
-    # NO ejecutes db.create_all() en la inicialización de la app.
-    # Esto se hace una vez usando la línea de comandos (flask db upgrade).
 
     return app
 
 
-# Gunicorn carga esto
-# Esta es la única línea que debe crear el objeto 'app' que Gunicorn busca.
+# Gunicorn usa esto
 app = create_app()
 
-# Si quieres hacer que el comando 'flask db upgrade' funcione:
-# from app import app # No necesario si ya está creado
