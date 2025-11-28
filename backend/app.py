@@ -1,4 +1,5 @@
 import os
+import psycopg2
 from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
@@ -15,7 +16,7 @@ def create_app():
     if not DATABASE_URL:
         raise RuntimeError("❌ DATABASE_URL no está definida en Railway")
 
-    # Asegurar SSL para Supabase
+    # Forzar SSL
     if "sslmode" not in DATABASE_URL:
         if "?" in DATABASE_URL:
             DATABASE_URL += "&sslmode=require"
@@ -44,20 +45,24 @@ def create_app():
     bcrypt.init_app(app)
     migrate.init_app(app, db)
 
-    # 👇 IMPORTANTE: Registra los modelos
+    # Importar modelos
     from models import User, Lote, Proveedor
-        @app.route("/init_db")
+
+    # ✅ RUTA PARA CREAR TABLAS
+    @app.route("/init_db")
     def init_db():
         try:
-            from models import User, Lote, Proveedor
             db.create_all()
             return "✅ Tablas creadas correctamente en Supabase"
         except Exception as e:
             return f"❌ Error creando tablas: {str(e)}"
 
-return app
+    return app
 
 
-# Gunicorn usa esto
+# Esto es lo que usa Gunicorn
 app = create_app()
 
+
+if __name__ == "__main__":
+    app.run(debug=False, host="0.0.0.0")
