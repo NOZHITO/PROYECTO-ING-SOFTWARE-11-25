@@ -4,8 +4,6 @@ from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
 from flask_migrate import Migrate
-# IMPORTA LOS MODELOS ANTES DE create_all
-from models import User, Lote, Proveedor
 
 migrate = Migrate()
 
@@ -18,17 +16,13 @@ def create_app():
     if not DATABASE_URL:
         raise RuntimeError("❌ DATABASE_URL no está definida en Railway")
 
-    # 💡 Limpia cualquier sslmode anterior
-    DATABASE_URL = DATABASE_URL.replace("?sslmode=disable", "").replace("&sslmode=disable", "")
-
-    # Forzar SSL requerido por Supabase
+    # Forzar SSL
     if "sslmode" not in DATABASE_URL:
         if "?" in DATABASE_URL:
             DATABASE_URL += "&sslmode=require"
         else:
             DATABASE_URL += "?sslmode=require"
 
-    # Config SQLAlchemy
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -51,23 +45,19 @@ def create_app():
     bcrypt.init_app(app)
     migrate.init_app(app, db)
 
-with app.app_context():
-    try:
-        from models import User, Lote, Proveedor  # 👈 IMPORTANTE
+    # Importar modelos para que SQLAlchemy los registre
+    from models import User, Lote, Proveedor
 
-        connection = db.engine.connect()
-        print("✅ Conectado correctamente a Supabase")
-        connection.close()
+    # Crear tablas
+    with app.app_context():
+        try:
+            db.create_all()
+            print("✅ Tablas creadas correctamente en Supabase")
+        except Exception as e:
+            print("❌ Error creando tablas:", e)
 
-        db.create_all()
-        print("✅ Intentando crear tablas")
-
-    except Exception as e:
-        print("❌ Error al conectar con Supabase:", e)
-
+    return app
 
 
+# Gunicorn carga esto
 app = create_app()
-
-if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0")
