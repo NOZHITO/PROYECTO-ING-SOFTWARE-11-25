@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 import os
+from extensions import db
 
 def create_app():
     app = Flask(__name__)
@@ -15,8 +16,12 @@ def create_app():
         raise RuntimeError("DATABASE_URL no está definida en Railway")
 
     # Forzar SSL requerido por Supabase
-    if "sslmode" not in DATABASE_URL:
-        DATABASE_URL += "?sslmode=require"
+      if "sslmode" not in DATABASE_URL:
+        if "?" in DATABASE_URL:
+            DATABASE_URL += "&sslmode=require"
+        else:
+            DATABASE_URL += "?sslmode=require"
+    
 
     # Config JWT
     app.config["SECRET_KEY"] = "supersecretkey"
@@ -39,11 +44,25 @@ def create_app():
 def get_db_connection():
     DATABASE_URL = os.getenv("DATABASE_URL")
 
-    if "sslmode" not in DATABASE_URL:
-        DATABASE_URL += "?sslmode=require"
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL no configurada")
 
-    conn = psycopg2.connect(DATABASE_URL)
+    if "sslmode" not in DATABASE_URL:
+        if "?" in DATABASE_URL:
+            DATABASE_URL += "&sslmode=require"
+        else:
+            DATABASE_URL += "?sslmode=require"
+
+    conn = psycopg2.connect(
+        DATABASE_URL,
+        sslmode="require"
+    )
     return conn
+
+
+if __name__ == "__main__":
+    app.run(debug=False, use_reloader=False)
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
@@ -52,5 +71,3 @@ if __name__ == "__main__":
 
 app = create_app()
 
-if name == "main":
-    app.run(debug=False, use_reloader=False)
