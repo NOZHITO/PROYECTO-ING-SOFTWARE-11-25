@@ -46,8 +46,16 @@ def create_app():
 
     # 👇 IMPORTANTE: Registra los modelos
     from models import User, Lote, Proveedor
+        @app.route("/init_db")
+    def init_db():
+        try:
+            from models import User, Lote, Proveedor
+            db.create_all()
+            return "✅ Tablas creadas correctamente en Supabase"
+        except Exception as e:
+            return f"❌ Error creando tablas: {str(e)}"
 
-    return app
+return app
 
 
 # Gunicorn usa esto
