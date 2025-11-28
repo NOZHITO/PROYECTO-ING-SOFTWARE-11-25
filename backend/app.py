@@ -44,6 +44,10 @@ def get_db_connection():
 
     conn = psycopg2.connect(DATABASE_URL)
     return conn
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=False)
 
 
 app = create_app()
