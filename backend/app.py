@@ -4,24 +4,20 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 import os
-from extensions import db
+from extensions import db, jwt, mail, bcrypt
+from config import Config
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    app.config.from_object(Config)
 
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    db.init_app(app)
+    jwt.init_app(app)
+    mail.init_app(app)
+    bcrypt.init_app(app)
 
-    if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL no está definida en Railway")
+    return app
 
-    # Forzar SSL requerido por Supabase
-      if "sslmode" not in DATABASE_URL:
-        if "?" in DATABASE_URL:
-            DATABASE_URL += "&sslmode=require"
-        else:
-            DATABASE_URL += "?sslmode=require"
-    
 
     # Config JWT
     app.config["SECRET_KEY"] = "supersecretkey"
