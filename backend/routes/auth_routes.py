@@ -4,7 +4,7 @@ from extensions import db, bcrypt, mail
 from flask_mail import Message
 from models import User
 import secrets
-from datetime import timedelta
+from datetime import timedelta, datetime # 🔥 Importar datetime de Python
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -26,9 +26,11 @@ def register_admin():
         if password != confirm_password:
             return jsonify({"msg": "Las contraseñas no coinciden"}), 400
 
+        # Usamos .filter_by.first() para verificar la existencia.
         if User.query.filter_by(email=email).first():
             return jsonify({"msg": "El correo ya está registrado"}), 400
 
+        # Hashear y crear usuario
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
         new_admin = User(name=name, email=email, password=hashed_password, role="admin")
 
@@ -70,7 +72,7 @@ def login_admin():
 
 
 # -------------------------------------------------------------------
-# 🔹 Login de pescador o vendedor
+# 🔹 Login de trabajador (pescador o vendedor)
 # -------------------------------------------------------------------
 @auth_bp.route("/login", methods=["POST"])
 def login_worker():
@@ -118,6 +120,7 @@ def login_worker():
 @jwt_required()
 def get_users():
     try:
+        # Aseguramos que solo devuelva workers, no otros admins si los hubiera
         users = User.query.filter(User.role != "admin").all()
 
         return jsonify([
@@ -144,7 +147,7 @@ def create_user():
     try:
         data = request.get_json()
         name = data.get("name")
-        username = data.get("username")   # 🔥 AGREGADO
+        username = data.get("username")
         email = data.get("email")
         password = data.get("password")
         role = data.get("role")
@@ -163,8 +166,8 @@ def create_user():
 
         new_user = User(
             name=name,
-            username=username,   # 🔥 GUARDAR username
-            email=email,         # opcional
+            username=username,
+            email=email,
             password=hashed_password,
             role=role
         )
@@ -185,81 +188,4 @@ def create_user():
 # ============================================================
 @auth_bp.route("/delete_user/<int:id>", methods=["DELETE"])
 @jwt_required()
-def delete_user(id):
-    try:
-        user = User.query.get(id)
-
-        if not user:
-            return jsonify({"msg": "Usuario no encontrado"}), 404
-
-        if user.role == "admin":
-            return jsonify({"msg": "No puedes eliminar administradores"}), 403
-
-        db.session.delete(user)
-        db.session.commit()
-
-        return jsonify({"msg": "Usuario eliminado correctamente"}), 200
-
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error en delete_user: {e}")
-        return jsonify({"msg": "Error interno del servidor"}), 500
-
-
-# ============================================================
-# 🔹 RECUPERAR CONTRASEÑA
-# ============================================================
-@auth_bp.route("/forgot_password", methods=["POST"])
-def forgot_password():
-    try:
-        data = request.get_json()
-        email = data.get("email")
-
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            return jsonify({"msg": "Usuario no encontrado"}), 404
-
-        token = secrets.token_hex(16)
-        user.reset_token = token
-        db.session.commit()
-
-        msg = Message(
-            subject="Recuperación de contraseña",
-            recipients=[email],
-            body=f"Tu token de recuperación de contraseña es:\n\n{token}"
-        )
-        mail.send(msg)
-
-        return jsonify({"msg": "Correo enviado"}), 200
-
-    except Exception as e:
-        print(f"Error en forgot_password: {e}")
-        return jsonify({"msg": "Error interno del servidor"}), 500
-
-
-# ============================================================
-# 🔹 RESET PASSWORD
-# ============================================================
-@auth_bp.route("/reset_password", methods=["POST"])
-def reset_password():
-    try:
-        data = request.get_json()
-        token = data.get("token")
-        new_password = data.get("new_password")
-
-        user = User.query.filter_by(reset_token=token).first()
-
-        if not user:
-            return jsonify({"msg": "Token inválido"}), 400
-
-        hashed_password = bcrypt.generate_password_hash(new_password).decode("utf-8")
-        user.password = hashed_password
-        user.reset_token = None
-
-        db.session.commit()
-
-        return jsonify({"msg": "Contraseña restablecida correctamente"}), 200
-
-    except Exception as e:
-        print(f"Error en reset_password: {e}")
-        return jsonify({"msg": "Error interno del servidor"}), 500
+def delete_user(id
