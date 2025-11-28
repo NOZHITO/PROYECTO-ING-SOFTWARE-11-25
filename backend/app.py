@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt, mail, bcrypt
 from flask_migrate import Migrate
+from models import User, Lote, Proveedor
 
 migrate = Migrate()
 
