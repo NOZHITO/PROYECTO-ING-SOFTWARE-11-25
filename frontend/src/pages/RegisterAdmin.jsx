@@ -23,7 +23,8 @@ const RegisterAdmin = () => {
     setSuccess("");
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/auth/register_admin", {
+      const response = await axios.post("https://proyecto-ing-software-11-25-production.up.railway.app/api/auth/register_admin",
+      {
         name: formData.name,
         email: formData.email,
         password: formData.password,
