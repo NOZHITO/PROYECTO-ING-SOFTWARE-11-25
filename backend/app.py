@@ -6,7 +6,7 @@ from flask_mail import Mail
 import os
 
 def create_app():
-    app = Flask(name)
+    app = Flask(__name__)
     CORS(app)
 
     DATABASE_URL = os.getenv("DATABASE_URL")
