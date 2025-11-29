@@ -1,3 +1,4 @@
+# admin_routes.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db, bcrypt
@@ -5,9 +6,9 @@ from models import User
 
 admin_bp = Blueprint("admin_bp", __name__)
 
-# ---------------------------------------------------------------
-# 🔹 Crear nuevo usuario (solo admin)
-# ---------------------------------------------------------------
+# ============================================================
+# 🔹 Crear usuario (pescador o vendedor)
+# ============================================================
 @admin_bp.route("/create_user", methods=["POST"])
 @jwt_required()
 def create_user():
@@ -16,38 +17,48 @@ def create_user():
         admin = User.query.get(admin_id)
 
         if not admin or admin.role != "admin":
-            return jsonify({"msg": "Acceso denegado. Solo administradores pueden crear usuarios."}), 403
+            return jsonify({"msg": "Solo los administradores pueden crear usuarios."}), 403
 
         data = request.get_json()
         name = data.get("name")
         username = data.get("username")
+        email = data.get("email")
         password = data.get("password")
-        role = data.get("role", "worker")
+        role = data.get("role")
+
+        if role not in ["pescador", "vendedor"]:
+            return jsonify({"msg": "Rol inválido"}), 400
 
         if not all([name, username, password]):
-            return jsonify({"msg": "Faltan campos obligatorios."}), 400
+            return jsonify({"msg": "Nombre, usuario y contraseña son requeridos"}), 400
 
-        # Validar duplicados
-        if User.query.filter_by(name=username).first():
-            return jsonify({"msg": "El nombre de usuario ya existe."}), 400
+        if User.query.filter_by(username=username).first():
+            return jsonify({"msg": "El username ya existe"}), 400
 
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
-        new_user = User(name=name, email=username, password=hashed_password, role=role)
+
+        new_user = User(
+            name=name,
+            username=username,
+            email=email,
+            password=hashed_password,
+            role=role
+        )
 
         db.session.add(new_user)
         db.session.commit()
 
-        return jsonify({"msg": f"Usuario '{name}' creado exitosamente"}), 201
+        return jsonify({"msg": "Usuario creado correctamente"}), 201
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error al crear usuario: {e}")
+        print("❌ Error en create_user:", e)
         return jsonify({"msg": "Error interno del servidor"}), 500
 
 
-# ---------------------------------------------------------------
-# 🔹 Listar todos los usuarios
-# ---------------------------------------------------------------
+# ============================================================
+# 🔹 Listar usuarios NO administradores
+# ============================================================
 @admin_bp.route("/users", methods=["GET"])
 @jwt_required()
 def get_users():
@@ -56,46 +67,52 @@ def get_users():
         admin = User.query.get(admin_id)
 
         if not admin or admin.role != "admin":
-            return jsonify({"msg": "Acceso denegado."}), 403
+            return jsonify({"msg": "Acceso denegado"}), 403
 
-        users = User.query.all()
-        users_list = [
-            {"id": u.id, "name": u.name, "username": u.email, "role": u.role}
+        users = User.query.filter(User.role != "admin").all()
+
+        return jsonify([
+            {
+                "id": u.id,
+                "name": u.name,
+                "username": u.username,
+                "email": u.email,
+                "role": u.role
+            }
             for u in users
-        ]
-        return jsonify(users_list), 200
+        ]), 200
 
     except Exception as e:
-        print(f"Error al obtener usuarios: {e}")
+        print("❌ Error en get_users:", e)
         return jsonify({"msg": "Error interno del servidor"}), 500
 
 
-# ---------------------------------------------------------------
-# 🔹 Ver contraseñas (solo admin)
-# ---------------------------------------------------------------
-@admin_bp.route("/view_passwords", methods=["POST"])
+# ============================================================
+# 🔹 Eliminar usuario
+# ============================================================
+@admin_bp.route("/delete_user/<int:id>", methods=["DELETE"])
 @jwt_required()
-def view_passwords():
+def delete_user(id):
     try:
-        data = request.get_json()
-        admin_password = data.get("admin_password")
-
         admin_id = get_jwt_identity()
         admin = User.query.get(admin_id)
 
         if not admin or admin.role != "admin":
-            return jsonify({"msg": "Acceso denegado."}), 403
+            return jsonify({"msg": "Acceso denegado"}), 403
 
-        if not bcrypt.check_password_hash(admin.password, admin_password):
-            return jsonify({"msg": "Contraseña de administrador incorrecta."}), 401
+        user = User.query.get(id)
+        if not user:
+            return jsonify({"msg": "Usuario no encontrado"}), 404
 
-        users = User.query.all()
-        passwords = [
-            {"username": u.email, "password": u.password}
-            for u in users
-        ]
-        return jsonify({"passwords": passwords}), 200
+        if user.role == "admin":
+            return jsonify({"msg": "No puedes eliminar administradores"}), 400
+
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({"msg": "Usuario eliminado correctamente"}), 200
 
     except Exception as e:
-        print(f"Error al ver contraseñas: {e}")
+        db.session.rollback()
+        print("❌ Error en delete_user:", e)
         return jsonify({"msg": "Error interno del servidor"}), 500
