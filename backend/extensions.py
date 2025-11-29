@@ -3,10 +3,14 @@ from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 from extensions import db, migrate, jwt, bcrypt, mail
+from flask_migrate import Migrate
 
-db = SQLAlchemy(session_options={"autoflush": False})
+
+db = SQLAlchemy()
+migrate = Migrate()
 jwt = JWTManager()
-mail = Mail()
 bcrypt = Bcrypt()
+mail = Mail()
+
 
 
