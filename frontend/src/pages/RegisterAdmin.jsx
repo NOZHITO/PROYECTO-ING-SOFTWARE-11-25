@@ -33,12 +33,15 @@ const RegisterAdmin = () => {
       email: formData.email,
       password: formData.password,
       confirmPassword: formData.confirmPassword,
+      console.log("ERR DETAILS:", err);
+
     });
 
     setSuccess("Administrador creado correctamente.");
     setTimeout(() => navigate("/login"), 2000);
 
   } catch (err) {
+    
     console.log("ERROR BACKEND:", err.response?.data);
     setError(err.response?.data?.msg || "Error al registrar administrador.");
   }
