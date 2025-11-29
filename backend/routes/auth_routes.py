@@ -1,4 +1,4 @@
-# auth_routes.py
+# routes/auth_routes.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 from extensions import db, bcrypt
@@ -6,6 +6,15 @@ from models import User
 from datetime import timedelta
 
 auth_bp = Blueprint("auth_bp", __name__)
+
+# ============================================================
+# 🔹 OPTIONS para CORS
+# ============================================================
+@auth_bp.route("/register_admin", methods=["OPTIONS"])
+@auth_bp.route("/login_admin", methods=["OPTIONS"])
+def auth_options():
+    return {}, 200
+
 
 # ============================================================
 # 🔹 Registrar un administrador
@@ -71,7 +80,11 @@ def login_admin():
             expires_delta=timedelta(hours=12)
         )
 
-        return jsonify({"token": token, "role": admin.role}), 200
+        return jsonify({
+            "token": token,
+            "role": admin.role,
+            "msg": "Inicio de sesión exitoso"
+        }), 200
 
     except Exception as e:
         print("❌ Error en login_admin:", e)
